@@ -17,7 +17,7 @@ const fetcher = ((data) => {
 
   // Make HTTP request
   request(url, 'utf8', (error, response, body) => {
-    // Throwing an error when error occurs
+    // Stretch: Throwing an error when url is invalid
     if (error) {
       console.log('Error: Invalid URL');
     }
@@ -36,11 +36,13 @@ const fetcher = ((data) => {
   });
 })
 
+// Stretch: 
 // Function that checks if the filename exists
 // If it exists, readline to overwrite or not
 const check = function(fetcher) {
   const file = args[1]
 
+  // Setup readline / rl
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
@@ -59,9 +61,12 @@ fs.access(file, fs.F_OK, (error) => {
         rl.close();
       }
     });
+  // If the file does not exist, fetcher will be called with printDownload as the argument
+  // This will print the download
   } else {
     fetcher(printDownload);
     rl.close();
+    // process.exit();
   }
 });
 }
