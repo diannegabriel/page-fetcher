@@ -7,7 +7,7 @@ const fs = require('fs');
 
 // Prints the download prompt
 const printDownload = function(size, fileName) {
-  process.stdout.write(`Downloaded and saved ${size} bytes to ${fileName}\n`);
+  console.log(`Downloaded and saved ${size} bytes to ${fileName}`);
 }
 
 // It should take two command line arguments:
@@ -23,6 +23,7 @@ const fetcher = ((data) => {
     }
     // Creates the fileName
     fs.writeFile(fileName, body, 'utf8', (error) => {
+      // Stretch: If the file path is invalid, the app should fail and let the user know about this issue.
       if (error) {
         console.log(`Error: ${error}`);
       }
@@ -37,7 +38,7 @@ const fetcher = ((data) => {
 
 // Function that checks if the filename exists
 // If it exists, readline to overwrite or not
-const check = function(data) {
+const check = function(fetcher) {
   const file = args[1]
 
   const rl = readline.createInterface({
@@ -48,22 +49,24 @@ const check = function(data) {
 // Scans if file already exists
 fs.access(file, fs.F_OK, (error) => {
 
-  // If there's no error 
+  // If there's no error when accessing the file
   if (!error) {
-    rl.question('Error! File already exists. Do you wish to overwrite your file? Y/N\n', (answer) => {
-      if (answer === "y") {
-        data(printDownload);
+    rl.question('Error! File already exists. Do you wish to overwrite your file? Y/N\n', (key) => {
+      if (key === "y" || key === "Y") {
+        fetcher(printDownload);
         rl.close();
-      } else if (answer === 'n') {
+      } else if (key === "n" || key === "N") {
         rl.close();
       }
     });
   } else {
-    data(printDownload);
+    fetcher(printDownload);
     rl.close();
   }
 });
 }
 
+// check is called to check on fetcher whether the file already exists
+// within both check and fetcher, printDownload is called
 check(fetcher);
 
