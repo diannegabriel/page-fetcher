@@ -1,11 +1,13 @@
 const args = process.argv.slice(2);
 const request = require('request');
+const readline = require('readline');
 const fs = require('fs');
 
 // console.log(args[0])
 
+// Prints the download prompt
 const printDownload = function(size, fileName) {
-  process.stdout.write(`Downloaded and saved ${size}mb to ${fileName}\n`);
+  process.stdout.write(`Downloaded and saved ${size} bytes to ${fileName}\n`);
 }
 
 // It should take two command line arguments:
@@ -13,15 +15,55 @@ const fetcher = ((data) => {
   const url = args[0]; // a URL
   const fileName = args[1]; // a local file path
 
+  // Make HTTP request
   request(url, 'utf8', (error, response, body) => {
-    fs.stat(fileName, (error, stats) => {
-      data(stats.size, fileName)
+    // Throwing an error when error occurs
+    if (error) {
+      console.log('Error: Invalid URL');
+    }
+    // Creates the fileName
+    fs.writeFile(fileName, body, 'utf8', (error) => {
+      if (error) {
+        console.log(`Error: ${error}`);
+      }
+
+      // Processes the data and collects bit size
+      fs.stat(fileName, (error, stats) => {
+        data(stats.size, fileName)
+      });
     });
   });
 })
 
+// Function that checks if the filename exists
+// If it exists, readline to overwrite or not
+const check = function(data) {
+  const file = args[1]
 
-// Output:
-// Downloaded and saved 3261 bytes to ./index.html
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
 
-fetcher(printDownload);
+// Scans if file already exists
+fs.access(file, fs.F_OK, (error) => {
+
+  // If there's no error 
+  if (!error) {
+    rl.question('Error! File already exists. Do you wish to overwrite your file? Y/N\n', (answer) => {
+      if (answer === "y") {
+        data(printDownload);
+        rl.close();
+      } else if (answer === 'n') {
+        rl.close();
+      }
+    });
+  } else {
+    data(printDownload);
+    rl.close();
+  }
+});
+}
+
+check(fetcher);
+
